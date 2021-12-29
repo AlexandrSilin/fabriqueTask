@@ -1,0 +1,41 @@
+version: '3'
+services:
+  db:
+    image: postgres:9.5
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USERNAME: postgres
+    ports:
+      - 5432
+    volumes:
+      - postgres_data_local:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  eureka:
+    image: eureka/web:latest
+    ports:
+      - 8761:8761
+    environment:
+      eureka.client.service-url.defaultZone: "http://eureka:8761/eureka"
+    command: bash -c "/apps/entrypoint.sh"
+
+  config-server:
+    image: config-server/web:latest
+    ports:
+      - 8888
+    environment:
+      eureka.client.service-url.defaultZone: "http://eureka:8761/eureka"
+    command: bash -c "/apps/wait-for-service.sh eureka 8761 && /apps/entrypoint.sh"
+
+  api:
+    image: backend-api/web:latest
+    ports:
+      - 9093:9093
+    environment:
+      eureka.client.service-url.defaultZone: "http://eureka:8761/eureka"
+    command: bash -c "/apps/wait-for-service.sh eshop-config-server 8888 && /apps/entrypoint.sh"
+
+volumes:
+  postgres_data_local:
+  file-storage:
