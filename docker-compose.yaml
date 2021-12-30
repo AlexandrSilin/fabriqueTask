@@ -12,6 +12,17 @@ services:
       - postgres_data_local:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
+#  pgadmin:
+#    image: dpage/pgadmin4
+#    restart: always
+#    environment:
+#      PGADMIN_DEFAULT_EMAIL: "user@mail.ru"
+#      PGADMIN_DEFAULT_PASSWORD: "user"
+#    ports:
+#      - 5050:80
+#    depends_on:
+#      - db
+
   eureka:
     image: eureka/web:latest
     ports:
@@ -29,13 +40,12 @@ services:
     command: bash -c "/apps/wait-for-service.sh eureka 8761 && /apps/entrypoint.sh"
 
   api:
-    image: backend-api/web:latest
+    image: api/web:latest
     ports:
-      - 9093:9093
+      - 9090:9090
     environment:
       eureka.client.service-url.defaultZone: "http://eureka:8761/eureka"
-    command: bash -c "/apps/wait-for-service.sh eshop-config-server 8888 && /apps/entrypoint.sh"
+    command: bash -c "/apps/wait-for-service.sh config-server 8888 && /apps/entrypoint.sh"
 
 volumes:
   postgres_data_local:
-  file-storage:
